@@ -1,0 +1,66 @@
+{% extends "dashboard_base.html" %}
+{% set active = 'employees' %}
+{% block page_title %}Team{% endblock %}
+{% block page_meta %}Manage employees and team leads.{% endblock %}
+
+{% block dash_content %}
+<div class="cols-2">
+  <div class="card">
+    <div class="panel-head"><h3>All staff</h3></div>
+    {% if staff %}
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Name</th><th>Role</th><th>Title</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            {% for u in staff %}
+              <tr>
+                <td>{{ u.name }}<div class="task-row__meta">{{ u.email }}</div></td>
+                <td><span class="badge {{ 'badge--in-progress' if u.role=='team_lead' else 'badge--pending' }}">{{ u.role.replace('_',' ') }}</span></td>
+                <td>{{ u.title or '--' }}</td>
+                <td><span class="badge {{ 'badge--completed' if u.is_active else 'badge--revision' }}">{{ 'Active' if u.is_active else 'Inactive' }}</span></td>
+                <td>
+                  <form method="POST" action="{{ url_for('admin.toggle_employee', user_id=u.id) }}">
+                    <button class="btn btn--ghost btn--sm">{{ 'Deactivate' if u.is_active else 'Activate' }}</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty"><h4>No staff yet</h4><p>Add your first employee or team lead using the form.</p></div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <div class="panel-head"><h3>Add staff member</h3></div>
+    <form method="POST">
+      <div class="form-group">
+        <label for="name">Full name</label>
+        <input type="text" id="name" name="name" required>
+      </div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required>
+      </div>
+      <div class="form-group">
+        <label for="password">Temporary password</label>
+        <input type="password" id="password" name="password" required minlength="8">
+      </div>
+      <div class="form-group">
+        <label for="role">Role</label>
+        <select id="role" name="role">
+          <option value="employee">Employee</option>
+          <option value="team_lead">Team Lead</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="title">Job title <span class="hint">(optional)</span></label>
+        <input type="text" id="title" name="title" placeholder="e.g. Motion Designer">
+      </div>
+      <button type="submit" class="btn btn--primary btn--block">Add to team</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

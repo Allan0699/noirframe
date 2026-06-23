@@ -1,0 +1,118 @@
+{% extends "dashboard_base.html" %}
+{% set active = 'projects' %}
+{% block page_title %}Projects{% endblock %}
+{% block page_meta %}Every project across the studio.{% endblock %}
+
+{% block dash_content %}
+<div class="cols-2">
+  <div class="card">
+    <div class="panel-head"><h3>All projects</h3></div>
+    {% if projects %}
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Project</th><th>Client</th><th>Lead</th><th>Status</th><th>Progress</th><th>Deadline</th></tr></thead>
+          <tbody>
+            {% for p in projects %}
+              <tr onclick="window.location='{{ url_for('admin.project_detail', project_id=p.id) }}'" style="cursor:pointer;">
+                <td>{{ p.name }}</td>
+                <td>{{ p.client_name }}</td>
+                <td>{{ p.lead_name or '--' }}</td>
+                <td><span class="badge badge--{{ p.status|lower|replace(' ', '-') }}">{{ p.status }}</span></td>
+                <td>{{ p.progress }}%</td>
+                <td class="mono">{{ p.deadline or '--' }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty"><h4>No projects yet</h4><p>Create your first project using the form.</p></div>
+    {% endif %}
+  </div>
+
+  <div>
+    <div class="card" style="margin-bottom:20px;">
+      <div class="panel-head"><h3>New project</h3></div>
+      <form method="POST">
+        <div class="form-group">
+          <label for="name">Project name</label>
+          <input type="text" id="name" name="name" required>
+        </div>
+        <div class="form-group">
+          <label for="client_id">Client</label>
+          <select id="client_id" name="client_id" required>
+            <option value="">Select client...</option>
+            {% for c in clients %}
+              <option value="{{ c.id }}">{{ c.name }}{{ ' -- ' ~ c.company if c.company }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="team_lead_id">Team lead <span class="hint">(optional)</span></label>
+          <select id="team_lead_id" name="team_lead_id">
+            <option value="">Unassigned</option>
+            {% for l in leads %}
+              <option value="{{ l.id }}">{{ l.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="category">Category</label>
+          <select id="category" name="category">
+            <option>Video Editing</option>
+            <option>2D Animation</option>
+            <option>3D Animation</option>
+            <option>Motion Graphics</option>
+            <option>VFX</option>
+            <option>CGI</option>
+            <option>Product Advertisements</option>
+            <option>Social Media Content</option>
+            <option>YouTube Editing</option>
+            <option>Corporate Videos</option>
+            <option>Brand Commercials</option>
+            <option>Short Films</option>
+            <option>Wedding Films</option>
+            <option>AI Video Production</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="budget">Budget (USD)</label>
+            <input type="number" id="budget" name="budget" min="0" step="50">
+          </div>
+          <div class="form-group">
+            <label for="deadline">Deadline</label>
+            <input type="date" id="deadline" name="deadline">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea id="description" name="description"></textarea>
+        </div>
+        <button type="submit" class="btn btn--primary btn--block">Create project</button>
+      </form>
+    </div>
+
+    <div class="ai-panel">
+      <div class="ai-panel__head">&#10024; AI Cost &amp; Timeline Estimator</div>
+      <p style="margin-bottom:12px; font-size:13.5px;">Powered by Gemini -- draft a ballpark quote before you talk to the client.</p>
+      <form id="cost-estimate-form">
+        <div class="form-group">
+          <label for="est-category">Service category</label>
+          <input type="text" id="est-category" name="category" placeholder="e.g. 2D Animation" required>
+        </div>
+        <div class="form-group">
+          <label for="est-scope">Scope description</label>
+          <textarea id="est-scope" name="scope" placeholder="e.g. 60-second explainer, 2 characters, English voiceover" required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="est-duration">Target turnaround <span class="hint">(optional)</span></label>
+          <input type="text" id="est-duration" name="duration_hint" placeholder="e.g. 3 weeks">
+        </div>
+        <button type="submit" class="btn btn--outline btn--block">Generate estimate</button>
+      </form>
+      <div id="cost-estimate-result"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}

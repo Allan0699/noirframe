@@ -1,0 +1,144 @@
+{% extends "dashboard_base.html" %}
+{% set active = 'projects' %}
+{% block page_title %}{{ project.name }}{% endblock %}
+{% block page_meta %}{{ project.category }} &middot; Client: {{ client.name }}{% endblock %}
+
+{% block dash_content %}
+<a href="{{ url_for('team_lead.projects') }}" class="auth-back">&larr; My projects</a>
+
+<div class="card" style="margin-bottom:20px;">
+  {% set statuses = ["Pending", "In Progress", "Review", "Revision", "Approved", "Delivered"] %}
+  {% set status = project.status %}
+  {% include "partials/status_pipeline.html" with context %}
+  <div class="progress-bar" style="margin-top:16px;"><div class="progress-bar__fill" style="width:{{ project.progress }}%;"></div></div>
+</div>
+
+<div class="ai-panel" style="margin-bottom:20px;">
+  <div class="ai-panel__head">&#10024; AI Project Summary</div>
+  <p style="font-size:13.5px; margin-bottom:10px;">Generate a client-ready status summary from the current tasks, via Gemini.</p>
+  <button id="generate-summary-btn" data-project-id="{{ project.id }}" class="btn btn--outline btn--sm">Generate summary</button>
+  <div id="summary-result">
+    {% if project.ai_summary %}<div class="ai-result">{{ project.ai_summary }}</div>{% endif %}
+  </div>
+</div>
+
+<div class="cols-2">
+  <div>
+    <div class="card" style="margin-bottom:20px;">
+      <div class="panel-head"><h3>Tasks ({{ tasks|length }})</h3></div>
+      {% if tasks %}
+        {% for t in tasks %}
+          <div class="task-row">
+            <div class="task-row__main">
+              <div class="task-row__title">{{ t.title }}</div>
+              <div class="task-row__meta">{{ t.assignee_name or 'Unassigned' }} &middot; {{ t.priority }} priority{{ ' &middot; due ' ~ t.due_date if t.due_date }}</div>
+            </div>
+            <span class="badge badge--{{ t.status|lower|replace(' ', '-') }}">{{ t.status }}</span>
+            {% if t.status == 'Under Review' %}
+              <div style="display:flex; gap:6px;">
+                <form method="POST" action="{{ url_for('team_lead.review_task', task_id=t.id) }}">
+                  <input type="hidden" name="decision" value="approve">
+                  <button class="btn btn--sm" style="background:var(--success-dim); color:var(--success);">Approve</button>
+                </form>
+                <form method="POST" action="{{ url_for('team_lead.review_task', task_id=t.id) }}" onsubmit="return attachNote(this)">
+                  <input type="hidden" name="decision" value="revise">
+                  <input type="hidden" name="note" value="">
+                  <button class="btn btn--sm btn--danger">Request revision</button>
+                </form>
+              </div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty"><h4>No tasks yet</h4><p>Break this project down using the form.</p></div>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <div class="panel-head"><h3>Assign a task</h3></div>
+      <form method="POST" action="{{ url_for('team_lead.create_task', project_id=project.id) }}">
+        <div class="form-group">
+          <label for="title">Task title</label>
+          <input type="text" id="title" name="title" required>
+        </div>
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea id="description" name="description"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="assigned_to">Assign to</label>
+            <select id="assigned_to" name="assigned_to">
+              <option value="">Unassigned</option>
+              {% for e in employees %}<option value="{{ e.id }}">{{ e.name }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="priority">Priority</label>
+            <select id="priority" name="priority">
+              <option>Low</option><option selected>Medium</option><option>High</option><option>Urgent</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="due_date">Due date</label>
+          <input type="date" id="due_date" name="due_date">
+        </div>
+        <button type="submit" class="btn btn--primary btn--block">Create task</button>
+      </form>
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+      <div class="panel-head"><h3>Files ({{ files|length }})</h3></div>
+      {% if files %}
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>File</th><th>Type</th><th>By</th><th></th></tr></thead>
+            <tbody>
+              {% for f in files %}
+                <tr>
+                  <td>{{ f.original_name }}</td>
+                  <td><span class="badge {{ 'badge--completed' if f.kind=='deliverable' else 'badge--pending' }}">{{ f.kind }}</span></td>
+                  <td>{{ f.uploader_name }}</td>
+                  <td><a href="{{ url_for('main.download_file', file_id=f.id) }}" class="btn btn--ghost btn--sm">Download</a></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="empty"><h4>No files yet</h4></div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="panel-head"><h3>Messages</h3></div>
+    <div class="thread">
+      {% for m in messages %}
+        <div class="msg {{ 'mine' if m.sender_id==current_user.id }}">
+          <div class="msg__bubble">{{ m.body }}</div>
+          <div class="msg__meta">{{ m.sender_name }} ({{ m.sender_role.replace('_',' ') }}) &middot; {{ m.created_at[:16] }}</div>
+        </div>
+      {% else %}
+        <div class="notif-empty">No messages yet.</div>
+      {% endfor %}
+    </div>
+    <form method="POST" action="{{ url_for('team_lead.post_message', project_id=project.id) }}" style="display:flex; gap:8px;">
+      <input type="text" name="body" placeholder="Write a message..." required style="flex:1;">
+      <button type="submit" class="btn btn--primary btn--sm">Send</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+function attachNote(form) {
+  const note = prompt("Optional note for the revision request:");
+  form.querySelector('input[name="note"]').value = note || "";
+  return true;
+}
+</script>
+{% endblock %}

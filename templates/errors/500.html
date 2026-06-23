@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Something went wrong -- {{ company_name }}{% endblock %}
+{% block content %}
+<div class="auth-shell">
+  <div class="empty">
+    <span class="eyebrow">500</span>
+    <h4 style="font-family: var(--font-display); font-size: 28px; margin-top: 10px;">Something broke on our end.</h4>
+    <p>Try again in a moment. If this keeps happening, check the server console for the error.</p>
+    <a href="{{ url_for('main.index') }}" class="btn btn--outline" style="margin-top:10px;">Back to home</a>
+  </div>
+</div>
+{% endblock %}

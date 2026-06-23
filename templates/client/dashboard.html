@@ -1,0 +1,34 @@
+{% extends "dashboard_base.html" %}
+{% set active = 'dashboard' %}
+{% block page_title %}My Projects{% endblock %}
+{% block page_meta %}Welcome back, {{ current_user.name.split(' ')[0] }}.{% endblock %}
+
+{% block dash_content %}
+{% if invoices_due > 0 %}
+  <div class="card" style="border-color:var(--warning); background:var(--warning-dim); margin-bottom:20px;">
+    <strong style="color:var(--warning);">${{ "%.2f"|format(invoices_due) }} due</strong>
+    <span style="color:var(--text-secondary); font-size:14px;"> across open invoices.</span>
+    <a href="{{ url_for('client.invoices') }}" class="btn btn--ghost btn--sm" style="margin-left:10px;">View invoices</a>
+  </div>
+{% endif %}
+
+{% if projects %}
+  {% for p in projects %}
+    <div class="card" style="margin-bottom:18px;">
+      <div class="panel-head">
+        <div>
+          <h3>{{ p.name }}</h3>
+          <div class="task-row__meta">{{ p.category }} &middot; Lead: {{ p.lead_name or 'Not yet assigned' }}</div>
+        </div>
+        <a href="{{ url_for('client.project_detail', project_id=p.id) }}" class="btn btn--outline btn--sm">Open project</a>
+      </div>
+      {% set statuses = ["Pending", "In Progress", "Review", "Revision", "Approved", "Delivered"] %}
+      {% set status = p.status %}
+      {% include "partials/status_pipeline.html" with context %}
+      <div class="progress-bar" style="margin-top:14px;"><div class="progress-bar__fill" style="width:{{ p.progress }}%;"></div></div>
+    </div>
+  {% endfor %}
+{% else %}
+  <div class="empty"><h4>No projects yet</h4><p>Once your studio team creates a project for you, it will appear here.</p></div>
+{% endif %}
+{% endblock %}

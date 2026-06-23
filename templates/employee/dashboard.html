@@ -1,0 +1,62 @@
+{% extends "dashboard_base.html" %}
+{% set active = 'dashboard' %}
+{% block page_title %}My Workspace{% endblock %}
+{% block page_meta %}Welcome back, {{ current_user.name.split(' ')[0] }}.{% endblock %}
+
+{% block dash_content %}
+<div class="stat-grid">
+  <div class="stat-card"><div class="label">Open Tasks</div><div class="value gold">{{ stats.open }}</div></div>
+  <div class="stat-card"><div class="label">Completed</div><div class="value">{{ stats.completed }}</div></div>
+  <div class="stat-card">
+    <div class="label">Time Clock</div>
+    {% if open_clock %}
+      <form method="POST" action="{{ url_for('employee.clock_out') }}" style="margin-top:8px;">
+        <button class="btn btn--danger btn--sm btn--block">Clock out</button>
+      </form>
+      <div class="hint" style="margin-top:6px;">Clocked in since {{ open_clock.clock_in[11:16] }}</div>
+    {% else %}
+      <form method="POST" action="{{ url_for('employee.clock_in') }}" style="margin-top:8px;">
+        <button class="btn btn--primary btn--sm btn--block">Clock in</button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+
+<div class="cols-2">
+  <div class="card">
+    <div class="panel-head">
+      <h3>My tasks</h3>
+      <a href="{{ url_for('employee.tasks') }}" class="btn btn--ghost btn--sm">View all &rarr;</a>
+    </div>
+    {% if tasks %}
+      {% for t in tasks[:8] %}
+        <div class="task-row">
+          <div class="task-row__main">
+            <div class="task-row__title"><a href="{{ url_for('employee.task_detail', task_id=t.id) }}">{{ t.title }}</a></div>
+            <div class="task-row__meta">{{ t.project_name }} &middot; {{ t.priority }} priority{{ ' &middot; due ' ~ t.due_date if t.due_date }}</div>
+          </div>
+          <span class="badge badge--{{ t.status|lower|replace(' ', '-') }}">{{ t.status }}</span>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty"><h4>No tasks assigned yet</h4><p>Your team lead will assign tasks here.</p></div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <div class="panel-head"><h3>Recent notifications</h3></div>
+    {% if notifications %}
+      {% for n in notifications %}
+        <div class="task-row">
+          <div class="task-row__main">
+            <div class="task-row__title" style="font-weight:400; font-size:13.5px;">{{ n.body }}</div>
+            <div class="task-row__meta mono">{{ n.created_at[:16] }}</div>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty"><h4>Nothing yet</h4></div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

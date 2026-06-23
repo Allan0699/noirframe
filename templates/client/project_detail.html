@@ -1,0 +1,130 @@
+{% extends "dashboard_base.html" %}
+{% set active = 'dashboard' %}
+{% block page_title %}{{ project.name }}{% endblock %}
+{% block page_meta %}{{ project.category }}{% endblock %}
+
+{% block dash_content %}
+<a href="{{ url_for('client.dashboard') }}" class="auth-back">&larr; My projects</a>
+
+<div class="card" style="margin-bottom:20px;">
+  {% set status = project.status %}
+  {% include "partials/status_pipeline.html" with context %}
+  <div class="progress-bar" style="margin-top:16px;"><div class="progress-bar__fill" style="width:{{ project.progress }}%;"></div></div>
+  <p style="margin-top:14px;">{{ project.description or '' }}</p>
+  {% if lead %}<p class="hint">Your team lead: {{ lead.name }} ({{ lead.email }})</p>{% endif %}
+</div>
+
+{% if project.ai_summary %}
+  <div class="ai-panel" style="margin-bottom:20px;">
+    <div class="ai-panel__head">&#10024; Latest Studio Update</div>
+    <div class="ai-result">{{ project.ai_summary }}</div>
+  </div>
+{% endif %}
+
+<div class="cols-2">
+  <div>
+    <div class="card" style="margin-bottom:20px;">
+      <div class="panel-head"><h3>Deliverables</h3></div>
+      {% if files %}
+        <div class="table-wrap">
+          <table>
+            <tbody>
+              {% for f in files %}
+                <tr>
+                  <td>{{ f.original_name }}</td>
+                  <td class="mono">{{ f.uploaded_at[:10] }}</td>
+                  <td><a href="{{ url_for('main.download_file', file_id=f.id) }}" class="btn btn--ghost btn--sm">Download</a></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="empty"><h4>No deliverables yet</h4><p>Files will appear here as the team finishes work.</p></div>
+      {% endif %}
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <div class="panel-head"><h3>Reference files you've shared</h3></div>
+      {% if references %}
+        <div class="table-wrap">
+          <table>
+            <tbody>
+              {% for f in references %}
+                <tr>
+                  <td>{{ f.original_name }}</td>
+                  <td class="mono">{{ f.uploaded_at[:10] }}</td>
+                  <td><a href="{{ url_for('main.download_file', file_id=f.id) }}" class="btn btn--ghost btn--sm">Download</a></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="empty"><h4>No references uploaded</h4></div>
+      {% endif %}
+      <form method="POST" action="{{ url_for('client.upload_reference', project_id=project.id) }}" enctype="multipart/form-data" style="margin-top:16px; border-top:1px solid var(--border-soft); padding-top:16px;">
+        <div class="form-group">
+          <label for="file">Upload a reference file</label>
+          <input type="file" id="file" name="file" required>
+        </div>
+        <button type="submit" class="btn btn--outline btn--block btn--sm">Upload</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="panel-head"><h3>Request a revision</h3></div>
+      <form method="POST" action="{{ url_for('client.request_revision', project_id=project.id) }}">
+        <div class="form-group">
+          <label for="note">What would you like changed?</label>
+          <textarea id="note" name="note" placeholder="Be as specific as you can -- timestamps, references, etc." required></textarea>
+        </div>
+        <button type="submit" class="btn btn--outline btn--block">Send revision request</button>
+      </form>
+    </div>
+  </div>
+
+  <div>
+    <div class="card" style="margin-bottom:20px;">
+      <div class="panel-head"><h3>Messages</h3></div>
+      <div class="thread">
+        {% for m in messages %}
+          <div class="msg {{ 'mine' if m.sender_id==current_user.id }}">
+            <div class="msg__bubble">{{ m.body }}</div>
+            <div class="msg__meta">{{ m.sender_name }} &middot; {{ m.created_at[:16] }}</div>
+          </div>
+        {% else %}
+          <div class="notif-empty">No messages yet.</div>
+        {% endfor %}
+      </div>
+      <form method="POST" action="{{ url_for('client.post_message', project_id=project.id) }}" style="display:flex; gap:8px;">
+        <input type="text" name="body" placeholder="Write a message..." required style="flex:1;">
+        <button type="submit" class="btn btn--primary btn--sm">Send</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="panel-head"><h3>Invoices</h3></div>
+      {% if invoices %}
+        {% for i in invoices %}
+          <div class="task-row">
+            <div class="task-row__main">
+              <div class="task-row__title">${{ "%.2f"|format(i.amount) }}</div>
+              <div class="task-row__meta">Issued {{ i.issued_at[:10] }}{{ ' &middot; due ' ~ i.due_at if i.due_at }}</div>
+            </div>
+            {% if i.status != 'Paid' %}
+              <form method="POST" action="{{ url_for('client.pay_invoice', invoice_id=i.id) }}">
+                <button class="btn btn--primary btn--sm">Pay now</button>
+              </form>
+            {% else %}
+              <span class="badge badge--paid">Paid</span>
+            {% endif %}
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty"><h4>No invoices yet</h4></div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

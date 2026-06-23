@@ -1,0 +1,44 @@
+{% extends "dashboard_base.html" %}
+{% set active = 'finance' %}
+{% block page_title %}Finance{% endblock %}
+{% block page_meta %}Revenue and invoicing across every project.{% endblock %}
+
+{% block dash_content %}
+<div class="stat-grid">
+  <div class="stat-card"><div class="label">Paid</div><div class="value gold">${{ "%.2f"|format(totals.paid) }}</div></div>
+  <div class="stat-card"><div class="label">Pending</div><div class="value">${{ "%.2f"|format(totals.pending) }}</div></div>
+  <div class="stat-card"><div class="label">Overdue</div><div class="value">${{ "%.2f"|format(totals.overdue) }}</div></div>
+</div>
+
+<div class="card">
+  <div class="panel-head"><h3>All invoices</h3></div>
+  {% if invoices %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Project</th><th>Client</th><th>Amount</th><th>Status</th><th>Issued</th><th>Due</th><th></th></tr></thead>
+        <tbody>
+          {% for i in invoices %}
+            <tr>
+              <td><a href="{{ url_for('admin.project_detail', project_id=i.project_id) }}">{{ i.project_name }}</a></td>
+              <td>{{ i.client_name }}</td>
+              <td>${{ "%.2f"|format(i.amount) }}</td>
+              <td><span class="badge badge--{{ i.status|lower }}">{{ i.status }}</span></td>
+              <td class="mono">{{ i.issued_at[:10] }}</td>
+              <td class="mono">{{ i.due_at or '--' }}</td>
+              <td>
+                {% if i.status != 'Paid' %}
+                  <form method="POST" action="{{ url_for('admin.mark_invoice_paid', invoice_id=i.id) }}">
+                    <button class="btn btn--ghost btn--sm">Mark paid</button>
+                  </form>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty"><h4>No invoices yet</h4><p>Create invoices from a project's detail page.</p></div>
+  {% endif %}
+</div>
+{% endblock %}

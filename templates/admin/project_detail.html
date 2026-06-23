@@ -1,0 +1,150 @@
+{% extends "dashboard_base.html" %}
+{% set active = 'projects' %}
+{% block page_title %}{{ project.name }}{% endblock %}
+{% block page_meta %}{{ project.category }} &middot; Client: {{ project.client_name }}{% endblock %}
+
+{% block dash_content %}
+<a href="{{ url_for('admin.projects') }}" class="auth-back">&larr; All projects</a>
+
+<div class="card" style="margin-bottom:20px;">
+  {% set status = project.status %}
+  {% include "partials/status_pipeline.html" with context %}
+  <div class="form-row" style="margin-top:18px; align-items:end;">
+    <form method="POST" action="{{ url_for('admin.update_project_status', project_id=project.id) }}" style="display:flex; gap:10px; align-items:end;">
+      <div class="form-group" style="flex:1; margin-bottom:0;">
+        <label>Update status</label>
+        <select name="status">
+          {% for s in statuses %}<option value="{{ s }}" {{ 'selected' if s==project.status }}>{{ s }}</option>{% endfor %}
+        </select>
+      </div>
+      <button class="btn btn--outline btn--sm">Update</button>
+    </form>
+    <form method="POST" action="{{ url_for('admin.assign_lead', project_id=project.id) }}" style="display:flex; gap:10px; align-items:end;">
+      <div class="form-group" style="flex:1; margin-bottom:0;">
+        <label>Team lead</label>
+        <select name="team_lead_id">
+          <option value="">Unassigned</option>
+          {% for l in leads %}<option value="{{ l.id }}" {{ 'selected' if project.team_lead_id==l.id }}>{{ l.name }}</option>{% endfor %}
+        </select>
+      </div>
+      <button class="btn btn--outline btn--sm">Assign</button>
+    </form>
+  </div>
+</div>
+
+<div class="stat-grid">
+  <div class="stat-card"><div class="label">Progress</div><div class="value gold">{{ project.progress }}%</div></div>
+  <div class="stat-card"><div class="label">Budget</div><div class="value">${{ "%.0f"|format(project.budget) }}</div></div>
+  <div class="stat-card"><div class="label">Deadline</div><div class="value mono" style="font-size:18px;">{{ project.deadline or 'TBD' }}</div></div>
+  <div class="stat-card"><div class="label">Client</div><div class="value" style="font-size:18px;">{{ project.client_email }}</div></div>
+</div>
+
+<div class="ai-panel" style="margin-bottom:20px;">
+  <div class="ai-panel__head">&#10024; AI Project Summary</div>
+  <p style="font-size:13.5px; margin-bottom:10px;">Generate a client-ready status summary from the current tasks, via Gemini.</p>
+  <button id="generate-summary-btn" data-project-id="{{ project.id }}" class="btn btn--outline btn--sm">Generate summary</button>
+  <div id="summary-result">
+    {% if project.ai_summary %}<div class="ai-result">{{ project.ai_summary }}</div>{% endif %}
+  </div>
+</div>
+
+<div class="cols-2">
+  <div>
+    <div class="card" style="margin-bottom:20px;">
+      <div class="panel-head"><h3>Tasks ({{ tasks|length }})</h3></div>
+      {% if tasks %}
+        {% for t in tasks %}
+          <div class="task-row">
+            <div class="task-row__main">
+              <div class="task-row__title">{{ t.title }}</div>
+              <div class="task-row__meta">{{ t.assignee_name or 'Unassigned' }} &middot; {{ t.priority }} priority{{ ' &middot; due ' ~ t.due_date if t.due_date }}</div>
+            </div>
+            <span class="badge badge--{{ t.status|lower|replace(' ', '-') }}">{{ t.status }}</span>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty"><h4>No tasks yet</h4><p>The assigned team lead can break this project into tasks.</p></div>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <div class="panel-head"><h3>Files ({{ files|length }})</h3></div>
+      {% if files %}
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>File</th><th>Type</th><th>Uploaded by</th><th></th></tr></thead>
+            <tbody>
+              {% for f in files %}
+                <tr>
+                  <td>{{ f.original_name }}</td>
+                  <td><span class="badge {{ 'badge--completed' if f.kind=='deliverable' else 'badge--pending' }}">{{ f.kind }}</span></td>
+                  <td>{{ f.uploader_name }}</td>
+                  <td><a href="{{ url_for('main.download_file', file_id=f.id) }}" class="btn btn--ghost btn--sm">Download</a></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="empty"><h4>No files yet</h4></div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div>
+    <div class="card" style="margin-bottom:20px;">
+      <div class="panel-head"><h3>Messages</h3></div>
+      <div class="thread">
+        {% for m in messages %}
+          <div class="msg {{ 'mine' if m.sender_id==current_user.id }}">
+            <div class="msg__bubble">{{ m.body }}</div>
+            <div class="msg__meta">{{ m.sender_name }} ({{ m.sender_role.replace('_',' ') }}) &middot; {{ m.created_at[:16] }}</div>
+          </div>
+        {% else %}
+          <div class="notif-empty">No messages yet.</div>
+        {% endfor %}
+      </div>
+      <form method="POST" action="{{ url_for('admin.post_message', project_id=project.id) }}" style="display:flex; gap:8px;">
+        <input type="text" name="body" placeholder="Write a message..." required style="flex:1;">
+        <button type="submit" class="btn btn--primary btn--sm">Send</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="panel-head"><h3>Invoices</h3></div>
+      {% if invoices %}
+        {% for i in invoices %}
+          <div class="task-row">
+            <div class="task-row__main">
+              <div class="task-row__title">${{ "%.2f"|format(i.amount) }}</div>
+              <div class="task-row__meta">Issued {{ i.issued_at[:10] }}{{ ' &middot; due ' ~ i.due_at if i.due_at }}</div>
+            </div>
+            {% if i.status != 'Paid' %}
+              <form method="POST" action="{{ url_for('admin.mark_invoice_paid', invoice_id=i.id) }}">
+                <button class="btn btn--ghost btn--sm">Mark paid</button>
+              </form>
+            {% else %}
+              <span class="badge badge--paid">Paid</span>
+            {% endif %}
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty"><h4>No invoices yet</h4></div>
+      {% endif %}
+      <form method="POST" action="{{ url_for('admin.create_invoice', project_id=project.id) }}" style="margin-top:14px; border-top:1px solid var(--border-soft); padding-top:14px;">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="amount">Amount (USD)</label>
+            <input type="number" id="amount" name="amount" min="0" step="0.01" required>
+          </div>
+          <div class="form-group">
+            <label for="due_at">Due date</label>
+            <input type="date" id="due_at" name="due_at">
+          </div>
+        </div>
+        <button class="btn btn--outline btn--block btn--sm">Create invoice</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

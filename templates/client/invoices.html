@@ -1,0 +1,37 @@
+{% extends "dashboard_base.html" %}
+{% set active = 'invoices' %}
+{% block page_title %}Invoices{% endblock %}
+{% block page_meta %}Billing across all of your projects.{% endblock %}
+
+{% block dash_content %}
+<div class="card">
+  {% if invoices %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Project</th><th>Amount</th><th>Status</th><th>Issued</th><th>Due</th><th></th></tr></thead>
+        <tbody>
+          {% for i in invoices %}
+            <tr>
+              <td>{{ i.project_name }}</td>
+              <td>${{ "%.2f"|format(i.amount) }}</td>
+              <td><span class="badge badge--{{ i.status|lower }}">{{ i.status }}</span></td>
+              <td class="mono">{{ i.issued_at[:10] }}</td>
+              <td class="mono">{{ i.due_at or '--' }}</td>
+              <td>
+                {% if i.status != 'Paid' %}
+                  <form method="POST" action="{{ url_for('client.pay_invoice', invoice_id=i.id) }}">
+                    <button class="btn btn--primary btn--sm">Pay now</button>
+                  </form>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="hint" style="margin-top:14px;">"Pay now" is a demo simulation -- no real payment gateway is connected.</p>
+  {% else %}
+    <div class="empty"><h4>No invoices yet</h4></div>
+  {% endif %}
+</div>
+{% endblock %}

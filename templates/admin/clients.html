@@ -1,0 +1,29 @@
+{% extends "dashboard_base.html" %}
+{% set active = 'clients' %}
+{% block page_title %}Clients{% endblock %}
+{% block page_meta %}Everyone with a client account.{% endblock %}
+
+{% block dash_content %}
+<div class="card">
+  {% if clients %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Client</th><th>Company</th><th>Email</th><th>Projects</th><th>Joined</th></tr></thead>
+        <tbody>
+          {% for c in clients %}
+            <tr>
+              <td>{{ c.name }}</td>
+              <td>{{ c.company or '--' }}</td>
+              <td>{{ c.email }}</td>
+              <td>{{ c.project_count }}</td>
+              <td class="mono">{{ c.created_at[:10] }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty"><h4>No clients yet</h4><p>Clients appear here once they register or are added to a project.</p></div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "dashboard_base.html" %}
+{% set active = 'employees' %}
+{% block page_title %}Team{% endblock %}
+{% block page_meta %}Employees available for task assignment.{% endblock %}
+
+{% block dash_content %}
+<div class="card">
+  {% if employees %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Name</th><th>Title</th><th>Open tasks</th><th>Completed</th><th>Status</th></tr></thead>
+        <tbody>
+          {% for e in employees %}
+            <tr>
+              <td>{{ e.name }}<div class="task-row__meta">{{ e.email }}</div></td>
+              <td>{{ e.title or '--' }}</td>
+              <td>{{ e.open_tasks or 0 }}</td>
+              <td>{{ e.done_tasks or 0 }}</td>
+              <td><span class="badge {{ 'badge--completed' if e.is_active else 'badge--revision' }}">{{ 'Active' if e.is_active else 'Inactive' }}</span></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty"><h4>No employees yet</h4><p>Ask an admin to add employees to the studio.</p></div>
+  {% endif %}
+</div>
+{% endblock %}

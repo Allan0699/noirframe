@@ -1,0 +1,29 @@
+{% extends "dashboard_base.html" %}
+{% set active = 'projects' %}
+{% block page_title %}My Projects{% endblock %}
+{% block page_meta %}Projects you're leading.{% endblock %}
+
+{% block dash_content %}
+<div class="card">
+  {% if projects %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Project</th><th>Client</th><th>Status</th><th>Progress</th><th>Deadline</th></tr></thead>
+        <tbody>
+          {% for p in projects %}
+            <tr onclick="window.location='{{ url_for('team_lead.project_detail', project_id=p.id) }}'" style="cursor:pointer;">
+              <td>{{ p.name }}</td>
+              <td>{{ p.client_name }}</td>
+              <td><span class="badge badge--{{ p.status|lower|replace(' ', '-') }}">{{ p.status }}</span></td>
+              <td>{{ p.progress }}%</td>
+              <td class="mono">{{ p.deadline or '--' }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty"><h4>No projects assigned yet</h4><p>An admin will assign you as lead on a project.</p></div>
+  {% endif %}
+</div>
+{% endblock %}

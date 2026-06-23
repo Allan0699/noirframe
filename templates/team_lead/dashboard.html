@@ -1,0 +1,57 @@
+{% extends "dashboard_base.html" %}
+{% set active = 'dashboard' %}
+{% block page_title %}Lead Overview{% endblock %}
+{% block page_meta %}Welcome back, {{ current_user.name.split(' ')[0] }}.{% endblock %}
+
+{% block dash_content %}
+<div class="stat-grid">
+  <div class="stat-card"><div class="label">Active Projects</div><div class="value gold">{{ stats.active_projects }}</div></div>
+  <div class="stat-card"><div class="label">Awaiting Review</div><div class="value">{{ stats.awaiting_review }}</div></div>
+  <div class="stat-card"><div class="label">Employees Available</div><div class="value">{{ stats.team_size }}</div></div>
+</div>
+
+<div class="cols-2">
+  <div class="card">
+    <div class="panel-head">
+      <h3>My projects</h3>
+      <a href="{{ url_for('team_lead.projects') }}" class="btn btn--ghost btn--sm">View all &rarr;</a>
+    </div>
+    {% if projects %}
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Project</th><th>Client</th><th>Status</th><th>Progress</th></tr></thead>
+          <tbody>
+            {% for p in projects %}
+              <tr onclick="window.location='{{ url_for('team_lead.project_detail', project_id=p.id) }}'" style="cursor:pointer;">
+                <td>{{ p.name }}</td>
+                <td>{{ p.client_name }}</td>
+                <td><span class="badge badge--{{ p.status|lower|replace(' ', '-') }}">{{ p.status }}</span></td>
+                <td>{{ p.progress }}%</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty"><h4>No projects assigned yet</h4><p>An admin will assign you as lead on a project.</p></div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <div class="panel-head"><h3>Awaiting your review</h3></div>
+    {% if open_tasks %}
+      {% for t in open_tasks %}
+        <div class="task-row">
+          <div class="task-row__main">
+            <div class="task-row__title">{{ t.title }}</div>
+            <div class="task-row__meta">{{ t.project_name }}</div>
+          </div>
+          <a href="{{ url_for('team_lead.project_detail', project_id=t.project_id) }}" class="btn btn--ghost btn--sm">Review</a>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty"><h4>Nothing waiting</h4><p>You're all caught up on reviews.</p></div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

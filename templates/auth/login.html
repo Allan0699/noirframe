@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Sign in -- {{ company_name }}{% endblock %}
+{% block content %}
+<div class="auth-shell">
+  <div class="auth-card">
+    <a href="{{ url_for('main.index') }}" class="auth-back">&larr; Back to site</a>
+    <div class="card">
+      <h1>Welcome back</h1>
+      <p class="sub">Sign in to your {{ company_name }} workspace.</p>
+
+      <form method="POST">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" value="{{ email }}" required autofocus>
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required>
+        </div>
+        <button type="submit" class="btn btn--primary btn--block">Sign in</button>
+      </form>
+
+      <p class="hint" style="margin-top:18px;">
+        Demo logins -- Admin: admin@noirframe.studio / admin12345 &middot;
+        Team Lead: priya@noirframe.studio / lead12345 &middot;
+        Employee: diego@noirframe.studio / employee12345 &middot;
+        Client: client@brightpeak.com / client12345
+      </p>
+
+      <div class="switch">New client? <a href="{{ url_for('auth.register') }}">Create an account</a></div>
+    </div>
+  </div>
+</div>
+{% endblock %}

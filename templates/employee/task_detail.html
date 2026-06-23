@@ -1,0 +1,61 @@
+{% extends "dashboard_base.html" %}
+{% set active = 'tasks' %}
+{% block page_title %}{{ task.title }}{% endblock %}
+{% block page_meta %}{{ task.project_name }}{% endblock %}
+
+{% block dash_content %}
+<a href="{{ url_for('employee.tasks') }}" class="auth-back">&larr; My tasks</a>
+
+<div class="cols-2">
+  <div class="card">
+    <div class="panel-head">
+      <h3>Details</h3>
+      <span class="badge badge--{{ task.status|lower|replace(' ', '-') }}">{{ task.status }}</span>
+    </div>
+    <p>{{ task.description or 'No description provided.' }}</p>
+    <p class="hint">Priority: {{ task.priority }}{{ ' &middot; due ' ~ task.due_date if task.due_date }}</p>
+    {% if task.project_description %}
+      <p class="hint" style="margin-top:14px;">Project context: {{ task.project_description }}</p>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('employee.update_task_status', task_id=task.id) }}" style="margin-top:20px; display:flex; gap:10px; align-items:end;">
+      <div class="form-group" style="flex:1; margin-bottom:0;">
+        <label for="status">Update status</label>
+        <select id="status" name="status">
+          {% for s in statuses %}<option value="{{ s }}" {{ 'selected' if s==task.status }}>{{ s }}</option>{% endfor %}
+        </select>
+      </div>
+      <button class="btn btn--primary btn--sm">Update</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <div class="panel-head"><h3>Deliverable files</h3></div>
+    {% if files %}
+      <div class="table-wrap">
+        <table>
+          <tbody>
+            {% for f in files %}
+              <tr>
+                <td>{{ f.original_name }}</td>
+                <td class="mono">{{ f.uploaded_at[:16] }}</td>
+                <td><a href="{{ url_for('main.download_file', file_id=f.id) }}" class="btn btn--ghost btn--sm">Download</a></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty"><h4>No files uploaded yet</h4></div>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('employee.upload_file', task_id=task.id) }}" enctype="multipart/form-data" style="margin-top:16px; border-top:1px solid var(--border-soft); padding-top:16px;">
+      <div class="form-group">
+        <label for="file">Upload deliverable</label>
+        <input type="file" id="file" name="file" required>
+      </div>
+      <button type="submit" class="btn btn--outline btn--block btn--sm">Upload</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

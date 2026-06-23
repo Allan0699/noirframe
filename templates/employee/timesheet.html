@@ -1,0 +1,27 @@
+{% extends "dashboard_base.html" %}
+{% set active = 'timesheet' %}
+{% block page_title %}Timesheet{% endblock %}
+{% block page_meta %}Your clock-in history.{% endblock %}
+
+{% block dash_content %}
+<div class="card">
+  {% if logs %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Clock in</th><th>Clock out</th><th>Duration</th></tr></thead>
+        <tbody>
+          {% for l in logs %}
+            <tr>
+              <td class="mono">{{ l.clock_in }}</td>
+              <td class="mono">{{ l.clock_out or 'In progress' }}</td>
+              <td class="mono">{{ l.duration }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty"><h4>No time logged yet</h4><p>Clock in from the dashboard to start tracking.</p></div>
+  {% endif %}
+</div>
+{% endblock %}

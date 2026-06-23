@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+{% block title %}{{ company_name }} -- Animation & Video Editing Studio{% endblock %}
+{% block content %}
+
+{% include "partials/navbar.html" %}
+
+<!-- ============================================================ HERO === -->
+<section class="hero">
+  <span class="eyebrow">Animation &middot; Video Editing &middot; VFX</span>
+  <h1>We cut, animate, and <em>finish</em> the films your brand is too busy to make.</h1>
+  <p class="lede">{{ company_name }} is a full-service post-production studio: editors, animators, and VFX
+    artists working inside one client portal, from first cut to final delivery.</p>
+  <div class="hero__cta">
+    <a href="#contact" class="btn btn--primary">Get a Quote</a>
+    <a href="#portfolio" class="btn btn--outline">View Portfolio</a>
+    <a href="{{ url_for('auth.register') }}" class="btn btn--ghost">Start Your Project &rarr;</a>
+  </div>
+
+  <div class="scrubber" aria-hidden="true">
+    <div class="scrubber__labels">
+      <span class="active">Pending</span><span>In Progress</span><span>Review</span><span>Revision</span><span>Approved</span><span class="active">Delivered</span>
+    </div>
+    <div class="scrubber__track">
+      {% for i in range(28) %}
+        <div class="scrubber__tick {{ 'filled' if i % 4 != 0 else '' }}"></div>
+      {% endfor %}
+      <div class="scrubber__playhead"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================= SERVICES === -->
+<section class="section section--alt" id="services">
+  <div class="section__head">
+    <span class="eyebrow">What we make</span>
+    <h2>One studio, every format</h2>
+  </div>
+  <div class="grid grid--4">
+    {% set services = [
+      ("VE","Video Editing","Narrative, corporate, and social cuts."),
+      ("2D","2D Animation","Explainers, brand worlds, character work."),
+      ("3D","3D Animation","Modeling, rigging, full 3D sequences."),
+      ("MG","Motion Graphics","Titles, lower thirds, kinetic type."),
+      ("FX","VFX","Compositing, tracking, clean-up."),
+      ("CG","CGI","Photoreal renders and product hero shots."),
+      ("PA","Product Advertisements","Launch films built to convert."),
+      ("SM","Social Media Content","Short-form, platform-native cuts."),
+      ("YT","YouTube Editing","Channel-ready, retention-first edits."),
+      ("CV","Corporate Videos","Internal comms, training, culture."),
+      ("BC","Brand Commercials","Broadcast and digital spots."),
+      ("SF","Short Films","Festival and narrative finishing."),
+      ("WF","Wedding Films","Documentary-style same-day edits."),
+      ("AI","AI Video Production","Gemini-assisted ideation and drafts."),
+    ] %}
+    {% for code, name, desc in services %}
+      <div class="card service-card">
+        <div class="service-card__icon mono" style="font-size:13px; border:1px solid var(--border); width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center;">{{ code }}</div>
+        <h3>{{ name }}</h3>
+        <p>{{ desc }}</p>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- ========================================================== PRICING === -->
+<section class="section" id="pricing">
+  <div class="section__head">
+    <span class="eyebrow">Plans</span>
+    <h2>Straightforward pricing, premium delivery</h2>
+  </div>
+
+  <div class="pricing-toggle" id="pricing-toggle" data-state="monthly">
+    <span class="on-label">Monthly retainer</span>
+    <div class="pricing-toggle__switch"></div>
+    <span class="off-label">Per project</span>
+  </div>
+
+  <div class="grid grid--3">
+    <div class="card price-card">
+      <h3>Basic</h3>
+      <div class="price"><span data-price-monthly="$499/mo" data-price-project="$150/project">$499/mo</span></div>
+      <p>For steady, simple edit needs.</p>
+      <ul>
+        <li>Simple edits, short-form videos</li>
+        <li>Up to 2 active requests</li>
+        <li>2 rounds of revisions</li>
+        <li>5-7 day turnaround</li>
+      </ul>
+      <a href="#contact" class="btn btn--outline btn--block">Choose Basic</a>
+    </div>
+
+    <div class="card price-card price-card--featured">
+      <span class="price-card__badge">Most popular</span>
+      <h3>Professional</h3>
+      <div class="price"><span data-price-monthly="$1,499/mo" data-price-project="$450/project">$1,499/mo</span></div>
+      <p>For brands shipping content weekly.</p>
+      <ul>
+        <li>Advanced editing &amp; motion graphics</li>
+        <li>Up to 6 active requests</li>
+        <li>Unlimited minor revisions</li>
+        <li>48-72hr priority turnaround</li>
+        <li>Dedicated project manager</li>
+      </ul>
+      <a href="#contact" class="btn btn--primary btn--block">Choose Professional</a>
+    </div>
+
+    <div class="card price-card">
+      <h3>Enterprise</h3>
+      <div class="price">Custom</div>
+      <p>For agencies and high-volume teams.</p>
+      <ul>
+        <li>Dedicated production team</li>
+        <li>Unlimited revisions</li>
+        <li>Priority support, SLA-backed</li>
+        <li>Custom 2D/3D/CGI pipelines</li>
+      </ul>
+      <a href="#contact" class="btn btn--outline btn--block">Request a Quote</a>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================= PORTFOLIO === -->
+<section class="section section--alt" id="portfolio">
+  <div class="section__head">
+    <span class="eyebrow">Recent work</span>
+    <h2>Selected projects</h2>
+  </div>
+
+  <div class="portfolio-filters">
+    <button class="filter-btn active" data-category="all">All</button>
+    {% for cat in portfolio_items | map(attribute='category') | unique %}
+      <button class="filter-btn" data-category="{{ cat }}">{{ cat }}</button>
+    {% endfor %}
+  </div>
+
+  <div class="grid grid--3">
+    {% for item in portfolio_items %}
+      <div class="portfolio-tile" data-category="{{ item.category }}">
+        <div class="portfolio-tile__thumb" style="background: linear-gradient(135deg, hsl({{ (loop.index0 * 47) % 360 }} 45% 14%), hsl({{ (loop.index0 * 47 + 40) % 360 }} 40% 9%));">
+          <div class="portfolio-tile__play">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 2.5L13 8L4 13.5V2.5Z" fill="white"/></svg>
+          </div>
+        </div>
+        <div class="portfolio-tile__body">
+          <div class="portfolio-tile__cat">{{ item.category }}</div>
+          <h4>{{ item.title }}</h4>
+          <p>{{ item.description }}</p>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- ====================================================== TESTIMONIALS === -->
+{% if testimonials %}
+<section class="section--tight">
+  <div class="grid grid--3" style="max-width: var(--max-width); margin: 0 auto;">
+    {% for t in testimonials %}
+      <div class="card testimonial">
+        <p>&ldquo;{{ t.quote }}&rdquo;</p>
+        <cite>{{ t.client_name }} &mdash; {{ t.role_company }}</cite>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<!-- ========================================================== CONTACT === -->
+<section class="section section--alt" id="contact">
+  <div class="contact-wrap">
+    <div class="contact-info">
+      <span class="eyebrow">Get in touch</span>
+      <h2>Tell us about your project</h2>
+      <p>Share a few details and a producer will follow up with a tailored quote, usually within one business day.</p>
+      <dl>
+        <dt>Email</dt>
+        <dd>studio@noirframe.example</dd>
+        <dt>Phone</dt>
+        <dd>+1 (555) 010-0142</dd>
+        <dt>WhatsApp</dt>
+        <dd>+1 (555) 010-0142</dd>
+      </dl>
+      <p class="hint">Placeholder contact details -- replace with your studio's real information before launch.</p>
+    </div>
+
+    <form class="card" method="POST" action="{{ url_for('main.contact') }}">
+      <div class="form-group">
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" placeholder="Jordan Blake" required>
+      </div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" placeholder="you@company.com" required>
+      </div>
+      <div class="form-group">
+        <label for="message">Project details</label>
+        <textarea id="message" name="message" placeholder="Tell us what you're making, your timeline, and budget range." required></textarea>
+      </div>
+      <button type="submit" class="btn btn--primary btn--block">Send message</button>
+    </form>
+  </div>
+</section>
+
+{% include "partials/footer.html" %}
+
+<!-- AI support chat widget -->
+<div class="chat-widget" id="chat-widget">
+  <div class="chat-widget__panel">
+    <div class="chat-widget__head">
+      <div>
+        <strong>Ask Aria</strong>
+        <p>NOIRFRAME's AI assistant</p>
+      </div>
+    </div>
+    <div class="chat-widget__body">
+      <div class="chat-msg bot">Hi, I'm Aria. Ask me about our services, pricing tiers, or how the studio works -- happy to help.</div>
+    </div>
+    <form class="chat-widget__form">
+      <input type="text" placeholder="Ask a question..." autocomplete="off">
+      <button type="submit" class="btn btn--primary btn--sm">Send</button>
+    </form>
+  </div>
+  <button class="chat-widget__toggle" aria-label="Open chat">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+  </button>
+</div>
+
+{% endblock %}

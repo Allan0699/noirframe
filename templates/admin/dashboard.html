@@ -1,0 +1,61 @@
+{% extends "dashboard_base.html" %}
+{% set active = 'dashboard' %}
+{% block page_title %}Studio Overview{% endblock %}
+{% block page_meta %}Welcome back, {{ current_user.name.split(' ')[0] }}.{% endblock %}
+
+{% block dash_content %}
+<div class="stat-grid">
+  <div class="stat-card"><div class="label">Active Projects</div><div class="value gold">{{ stats.active_projects }}</div></div>
+  <div class="stat-card"><div class="label">Delivered</div><div class="value">{{ stats.delivered_projects }}</div></div>
+  <div class="stat-card"><div class="label">Team Leads</div><div class="value">{{ stats.team_leads }}</div></div>
+  <div class="stat-card"><div class="label">Employees</div><div class="value">{{ stats.employees }}</div></div>
+  <div class="stat-card"><div class="label">Clients</div><div class="value">{{ stats.clients }}</div></div>
+  <div class="stat-card"><div class="label">Revenue Collected</div><div class="value gold">${{ "%.0f"|format(stats.revenue) }}</div></div>
+  <div class="stat-card"><div class="label">Pending Revenue</div><div class="value">${{ "%.0f"|format(stats.pending_revenue) }}</div></div>
+</div>
+
+<div class="cols-2">
+  <div class="card">
+    <div class="panel-head">
+      <h3>Recent projects</h3>
+      <a href="{{ url_for('admin.projects') }}" class="btn btn--ghost btn--sm">View all &rarr;</a>
+    </div>
+    {% if recent_projects %}
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Project</th><th>Client</th><th>Status</th><th>Progress</th></tr></thead>
+          <tbody>
+            {% for p in recent_projects %}
+              <tr onclick="window.location='{{ url_for('admin.project_detail', project_id=p.id) }}'" style="cursor:pointer;">
+                <td>{{ p.name }}</td>
+                <td>{{ p.client_name }}</td>
+                <td><span class="badge badge--{{ p.status|lower|replace(' ', '-') }}">{{ p.status }}</span></td>
+                <td>{{ p.progress }}%</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty"><h4>No projects yet</h4><p>Create your first project to get started.</p></div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <div class="panel-head"><h3>Recent inquiries</h3></div>
+    {% if recent_contacts %}
+      {% for c in recent_contacts %}
+        <div class="task-row">
+          <div class="task-row__main">
+            <div class="task-row__title">{{ c.name }}</div>
+            <div class="task-row__meta">{{ c.email }}</div>
+            <div class="task-row__meta">{{ c.message[:80] }}{{ '...' if c.message|length > 80 }}</div>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty"><h4>No inquiries yet</h4><p>Contact form submissions will appear here.</p></div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

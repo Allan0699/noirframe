@@ -1,0 +1,14 @@
+<footer class="footer">
+  <div class="footer__row">
+    <div class="brand" style="font-size:16px;">
+      <span class="brand__mark">NF</span> {{ company_name }}
+    </div>
+    <div class="footer__links">
+      <span>&copy; {{ 2026 }} {{ company_name }} Studio</span>
+      <a href="{{ url_for('main.index') }}#services">Services</a>
+      <a href="{{ url_for('main.index') }}#portfolio">Portfolio</a>
+      <a href="{{ url_for('main.index') }}#contact">Contact</a>
+      <a href="{{ url_for('auth.login') }}">Sign in</a>
+    </div>
+  </div>
+</footer>

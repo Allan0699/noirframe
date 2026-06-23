@@ -1,0 +1,11 @@
+{# Expects: statuses (ordered list of stage names), status (current value) #}
+<div class="pipeline">
+  {% set current_index = statuses.index(status) if status in statuses else -1 %}
+  {% for s in statuses %}
+    <div class="pipeline__stage {{ 'done' if loop.index0 < current_index else '' }} {{ 'current' if loop.index0 == current_index else '' }}">
+      <div class="pipeline__line"></div>
+      <div class="dot"></div>
+      <div class="lbl">{{ s }}</div>
+    </div>
+  {% endfor %}
+</div>

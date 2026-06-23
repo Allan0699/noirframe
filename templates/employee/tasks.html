@@ -1,0 +1,29 @@
+{% extends "dashboard_base.html" %}
+{% set active = 'tasks' %}
+{% block page_title %}My Tasks{% endblock %}
+{% block page_meta %}Everything assigned to you.{% endblock %}
+
+{% block dash_content %}
+<div class="card">
+  {% if tasks %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Task</th><th>Project</th><th>Priority</th><th>Status</th><th>Due</th></tr></thead>
+        <tbody>
+          {% for t in tasks %}
+            <tr onclick="window.location='{{ url_for('employee.task_detail', task_id=t.id) }}'" style="cursor:pointer;">
+              <td>{{ t.title }}</td>
+              <td>{{ t.project_name }}</td>
+              <td>{{ t.priority }}</td>
+              <td><span class="badge badge--{{ t.status|lower|replace(' ', '-') }}">{{ t.status }}</span></td>
+              <td class="mono">{{ t.due_date or '--' }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty"><h4>No tasks yet</h4><p>Your team lead will assign tasks here.</p></div>
+  {% endif %}
+</div>
+{% endblock %}

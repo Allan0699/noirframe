@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Page not found -- {{ company_name }}{% endblock %}
+{% block content %}
+<div class="auth-shell">
+  <div class="empty">
+    <span class="eyebrow">404</span>
+    <h4 style="font-family: var(--font-display); font-size: 28px; margin-top: 10px;">This frame doesn't exist.</h4>
+    <p>The page you're looking for was moved, deleted, or never rendered.</p>
+    <a href="{{ url_for('main.index') }}" class="btn btn--outline" style="margin-top:10px;">Back to home</a>
+  </div>
+</div>
+{% endblock %}
